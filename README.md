@@ -120,4 +120,143 @@ SleepSyncAI/
 
 - .NET 8 SDK
 - Node.js and npm
-- Visual Studio 2022 or Visual Studio
+- Visual Studio 2022 or Visual Studio Code
+- A Google Gemini API key (optional; the rule-based fallback can be used without one)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/SintaSobu45/SleepSyncAI.git
+cd SleepSyncAI
+```
+
+### 2. Run the Backend
+
+```bash
+cd SleepSyncAI.Api
+dotnet restore
+dotnet build
+```
+
+Configure the Gemini API key if AI-powered analysis is required.
+
+**Option A: .NET User Secrets**
+
+```bash
+dotnet user-secrets init
+dotnet user-secrets set "Gemini:ApiKey" "YOUR_GEMINI_API_KEY"
+```
+
+**Option B: Environment Variable**
+
+In PowerShell:
+
+```powershell
+$env:GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
+```
+
+Run the API using your configured local launch profile:
+
+```bash
+dotnet run
+```
+
+Open the Swagger URL displayed by the application. For a launch profile configured for HTTP on port 5062, the URL is:
+
+`http://localhost:5062/swagger`
+
+The actual port depends on your launch settings.
+
+### 3. Run the Frontend
+
+Open a separate terminal from the repository root:
+
+```bash
+cd sleepsyncai.client
+npm install
+npm run dev
+```
+
+Open the local URL displayed by Vite, typically:
+
+`http://localhost:5173`
+
+The frontend API configuration is in:
+
+`src/services/sleepApi.js`
+
+For local development, ensure the API base URL points to your locally running backend. For the deployed frontend, it should point to the Render API.
+
+## Example API Request
+
+**POST** `/api/sleep/analyze`
+
+```json
+{
+  "bedtime": "23:00",
+  "wakeUpTime": "07:00",
+  "energyPeak": "LateMorning",
+  "preferredSchedule": "Flexible",
+  "averageSleepHours": 8,
+  "notes": ""
+}
+```
+
+The API returns structured analysis information, including a summary, estimated schedule preference, reported sleep duration, suggestions, general recommendations, and a wellness disclaimer.
+
+The exact response depends on the submitted data and the active analysis service.
+
+### Accepted Values
+
+| Field | Accepted values |
+|---|---|
+| `energyPeak` | `EarlyMorning`, `LateMorning`, `Afternoon`, `Evening`, `Night` |
+| `preferredSchedule` | `Early`, `Flexible`, `Late` |
+| `averageSleepHours` | 1–24, including decimal values |
+| `notes` | Optional; maximum 500 characters |
+
+The API validates required fields and accepted values. Invalid requests return a validation error response.
+
+## How the Rule-Based Fallback Works
+
+When Gemini is not configured or AI analysis is unavailable, the application can use a deterministic rule-based analyzer.
+
+- **Sleep duration:** Calculates the interval between bedtime and wake-up time, including overnight schedules.
+- **Schedule preference:** Estimates a broad schedule preference using the application's scoring rules.
+- **Suggestions:** Produces contextual informational suggestions based on submitted sleep details.
+- **Recommendations:** Provides general sleep-hygiene guidance.
+
+These are application-generated estimates, not scientifically established chronotype measurements or medical conclusions.
+
+## Security and Privacy
+
+- Gemini credentials should be stored in server-side configuration or environment variables.
+- Never commit real API keys, passwords, or other secrets to GitHub.
+- Sleep information is not persisted by the current application.
+- The application does not require user authentication in its current version.
+
+## Known Limitations
+
+- Sleep questionnaire data is not saved between sessions.
+- There is no user authentication or personal dashboard.
+- AI-powered analysis depends on Gemini availability and valid configuration.
+- Rule-based analysis is used as a fallback when AI is unavailable.
+- PDF rendering may vary slightly depending on font availability.
+- Results are informational and must not be used for medical diagnosis.
+
+## Future Improvements
+
+Potential enhancements include:
+- Sleep history and trend visualization.
+- Optional user accounts and saved reports.
+- More detailed weekly sleep summaries.
+- Additional accessibility and responsive-design improvements.
+- Automated API and frontend tests.
+
+## Wellness Disclaimer
+
+SleepSync AI provides informal wellness information based on self-reported data. It does not diagnose sleep disorders, establish biological chronotypes, or provide medical advice. A short questionnaire cannot scientifically determine an individual's biological chronotype. Consult a qualified healthcare professional for sleep-related health concerns.
+
+---
+
+**Built with React, ASP.NET Core, Google Gemini, and QuestPDF.**
