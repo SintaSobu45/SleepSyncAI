@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SleepSync AI — Project Documentation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0F172A;
+      --accent: #14B8A6;
+      --accent-light: #2DD4BF;
+      --accent-dark: #0D9488;
+      --bg: #FFFFFF;
+      --text: #1E293B;
+      --text-muted: #64748B;
+      --border: #E2E8F0;
+      --surface: #F8FAFC;
+      --code-bg: #F1F5F9;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    /* ── Print Styles ── */
+    @media print {
+      body { font-size: 11px; line-height: 1.5; }
+      .no-print { display: none !important; }
+      .page-break { page-break-before: always; }
+      .cover { min-height: auto; padding: 40px 0; }
+      section { page-break-inside: avoid; }
+      table { font-size: 10px; }
+      .toc a { color: var(--text) !important; }
+    }
+
+    /* ── Cover Page ── */
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+      color: #F1F5F9;
+      text-align: center;
+      padding: 60px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cover::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 40%, rgba(20,184,166,0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 60%, rgba(20,184,166,0.05) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .cover-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      filter: drop-shadow(0 0 20px rgba(20,184,166,0.4));
+    }
+
+    .cover h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #F1F5F9 0%, #14B8A6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+    }
+
+    .cover .subtitle {
+      font-size: 1.15rem;
+      color: #94A3B8;
+      font-weight: 400;
+      margin-bottom: 40px;
+    }
+
+    .cover-meta {
+      display: flex;
+      gap: 30px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .cover-meta-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 24px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(148,163,184,0.1);
+      border-radius: 12px;
+      min-width: 140px;
+    }
+
+    .cover-meta-item .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #94A3B8;
+      margin-bottom: 4px;
+    }
+
+    .cover-meta-item .value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #14B8A6;
+    }
+
+    /* ── Print Button ── */
+    .print-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 30px;
+      background: rgba(15,23,42,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(20,184,166,0.2);
+    }
+
+    .print-bar span {
+      color: #94A3B8;
+      font-size: 0.82rem;
+    }
+
+    .print-btn {
+      padding: 8px 24px;
+      background: linear-gradient(135deg, #14B8A6, #0D9488);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .print-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 16px rgba(20,184,166,0.35);
+    }
+
+    /* ── Content Container ── */
+    .content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 50px 40px;
+    }
+
+    /* ── Headings ── */
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 50px 0 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--accent);
+      letter-spacing: -0.02em;
+    }
+
+    h2 .num {
+      color: var(--accent);
+      font-weight: 800;
+      margin-right: 8px;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 30px 0 12px;
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin: 20px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-size: 0.8rem;
+    }
+
+    p { margin-bottom: 12px; }
+
+    /* ── Tables ── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px;
+      font-size: 0.88rem;
+    }
+
+    thead th {
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    thead th:first-child { border-radius: 8px 0 0 0; }
+    thead th:last-child { border-radius: 0 8px 0 0; }
+
+    tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    tbody tr:nth-child(even) { background: var(--surface); }
+    tbody tr:hover { background: rgba(20,184,166,0.04); }
+
+    /* ── Code ── */
+    code {
+      font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      color: var(--accent-dark);
+    }
+
+    pre {
+      background: var(--primary);
+      color: #E2E8F0;
+      padding: 16px 20px;
+      border-radius: 10px;
+      overflow-x: auto;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      margin: 12px 0 20px;
+    }
+
+    pre code {
+      background: none;
+      color: inherit;
+      padding: 0;
+    }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-backend { background: #DBEAFE; color: #1E40AF; }
+    .badge-frontend { background: #D1FAE5; color: #065F46; }
+    .badge-service { background: #FEF3C7; color: #92400E; }
+    .badge-model { background: #EDE9FE; color: #5B21B6; }
+    .badge-config { background: #FCE7F3; color: #9D174D; }
+
+    /* ── Feature Cards ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin: 16px 0 24px;
+    }
+
+    .feature-card {
+      padding: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      border-left: 4px solid var(--accent);
+    }
+
+    .feature-card h5 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .feature-card p {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    /* ── Lists ── */
+    ul, ol {
+      margin: 8px 0 16px 20px;
+    }
+
+    li {
+      margin-bottom: 6px;
+      font-size: 0.9rem;
+    }
+
+    li::marker { color: var(--accent); }
+
+    /* ── Info Box ── */
+    .info-box {
+      padding: 16px 20px;
+      border-radius: 10px;
+      margin: 16px 0;
+      font-size: 0.88rem;
+    }
+
+    .info-box.note {
+      background: #F0FDFA;
+      border: 1px solid #99F6E4;
+      color: #134E4A;
+    }
+
+    .info-box.warning {
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+      color: #78350F;
+    }
+
+    .info-box.important {
+      background: #EFF6FF;
+      border: 1px solid #BFDBFE;
+      color: #1E3A5F;
+    }
+
+    .info-box strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    /* ── TOC ── */
+    .toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px 30px;
+      margin: 24px 0;
+    }
+
+    .toc h3 {
+      margin-top: 0;
+      font-size: 1.1rem;
+      color: var(--primary);
+    }
+
+    .toc ol {
+      margin: 12px 0 0 20px;
+    }
+
+    .toc li {
+      margin-bottom: 8px;
+    }
+
+    .toc a {
+      color: var(--accent-dark);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .toc a:hover {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+
+    /* ── Folder Tree ── */
+    .tree {
+      background: var(--primary);
+      color: #CBD5E1;
+      padding: 20px 24px;
+      border-radius: 10px;
+      font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+      font-size: 0.8rem;
+      line-height: 1.8;
+      margin: 12px 0 20px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .tree .folder { color: #14B8A6; font-weight: 600; }
+    .tree .file { color: #94A3B8; }
+    .tree .comment { color: #475569; font-style: italic; }
+
+    /* ── Divider ── */
+    hr {
+      border: none;
+      height: 1px;
+      background: var(--border);
+      margin: 40px 0;
+    }
+
+    /* ── Footer ── */
+    .doc-footer {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      margin-top: 60px;
+    }
+
+    /* ── Architecture Diagram ── */
+    .arch-diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 30px;
+      margin: 16px 0 24px;
+      text-align: center;
+      font-family: 'Cascadia Code', Consolas, monospace;
+      font-size: 0.8rem;
+      line-height: 2;
+      overflow-x: auto;
+      white-space: pre;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Print Bar -->
+<div class="print-bar no-print">
+  <span>SleepSync AI — Project Documentation</span>
+  <button class="print-btn" onclick="window.print()">📄 Save as PDF / Print</button>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- COVER PAGE                                  -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-icon">🌙</div>
+  <h1>SleepSync AI</h1>
+  <p class="subtitle">Sleep Pattern Analyzer & PDF Report Generator — Complete Project Documentation</p>
+
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <span class="label">Version</span>
+      <span class="value">1.0.0</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="label">Platform</span>
+      <span class="value">Web App</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="label">Backend</span>
+      <span class="value">.NET 8</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="label">Frontend</span>
+      <span class="value">React 19</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="label">Date</span>
+      <span class="value">October 2026</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="label">Status</span>
+      <span class="value">✅ Complete</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- DOCUMENT CONTENT                            -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="content">
+
+  <!-- TABLE OF CONTENTS -->
+  <div class="toc">
+    <h3>📋 Table of Contents</h3>
+    <ol>
+      <li><a href="#overview">Project Overview</a></li>
+      <li><a href="#features">Features & Functions</a></li>
+      <li><a href="#architecture">System Architecture</a></li>
+      <li><a href="#tech-stack">Technology Stack & Installed Packages</a></li>
+      <li><a href="#folder-structure">Folder Structure</a></li>
+      <li><a href="#backend-files">Backend — File-by-File Breakdown</a></li>
+      <li><a href="#frontend-files">Frontend — File-by-File Breakdown</a></li>
+      <li><a href="#api-endpoints">API Endpoints</a></li>
+      <li><a href="#analysis-engine">How the Analysis Engine Works</a></li>
+      <li><a href="#pdf-report">PDF Report Details</a></li>
+      <li><a href="#configuration">Configuration & Setup</a></li>
+      <li><a href="#security">Security Measures</a></li>
+      <li><a href="#limitations">Known Limitations</a></li>
+    </ol>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 1. PROJECT OVERVIEW                        -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="overview"><span class="num">01</span>Project Overview</h2>
+
+  <p><strong>SleepSync AI</strong> is an educational wellness web application that helps users understand their self-reported sleep and daily energy patterns. Users fill out a 6-field sleep questionnaire, and the app generates personalized informational reports with practical sleep-routine suggestions. Users can also download their analysis as a professionally formatted PDF report.</p>
+
+  <div class="info-box warning">
+    <strong>⚠️ Important Disclaimer</strong>
+    This is an informational wellness tool, NOT a medical diagnostic application. It does not diagnose sleep disorders, determine biological chronotypes, or provide medical advice.
+  </div>
+
+  <h3>Project Objectives</h3>
+  <ul>
+    <li>Provide a user-friendly interface for entering sleep pattern data</li>
+    <li>Analyze sleep data using AI (Google Gemini) or rule-based algorithms</li>
+    <li>Generate personalized, actionable sleep suggestions</li>
+    <li>Create downloadable professional PDF reports</li>
+    <li>Work fully offline without requiring an AI API key</li>
+    <li>Maintain user privacy — no data is stored or persisted</li>
+  </ul>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 2. FEATURES & FUNCTIONS                    -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="features"><span class="num">02</span>Features & Functions</h2>
+
+  <h3>Core Features</h3>
+  <div class="feature-grid">
+    <div class="feature-card">
+      <h5>🛏️ Sleep Questionnaire</h5>
+      <p>6-field interactive form with bedtime, wake-up time, energy peak, preferred schedule, sleep duration slider, and optional notes. Client-side validation with clear error messages.</p>
+    </div>
+    <div class="feature-card">
+      <h5>🤖 AI-Powered Analysis</h5>
+      <p>Uses Google Gemini API (gemini-2.0-flash model) for natural language sleep pattern analysis with personalized, conversational insights.</p>
+    </div>
+    <div class="feature-card">
+      <h5>📊 Rule-Based Fallback</h5>
+      <p>Deterministic scoring algorithm (0–9 scale) that works without any API key or internet connection. Automatically activates when AI is unavailable.</p>
+    </div>
+    <div class="feature-card">
+      <h5>📄 PDF Report Generator</h5>
+      <p>Server-side PDF generation using QuestPDF. Creates branded A4 reports with all analysis sections, page numbering, and professional layout.</p>
+    </div>
+    <div class="feature-card">
+      <h5>🌙 Dark Mode UI</h5>
+      <p>Premium dark theme with glassmorphism effects, gradient accents, Inter typography, and smooth micro-animations for a modern look.</p>
+    </div>
+    <div class="feature-card">
+      <h5>🔒 Privacy First</h5>
+      <p>No data persistence, no user accounts, no cookies. Stateless architecture ensures all data is processed in-memory and never stored.</p>
+    </div>
+  </div>
+
+  <h3>Detailed Function List</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Function</th>
+        <th>Layer</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>analyzeSleep(data)</code></td>
+        <td><span class="badge badge-frontend">Frontend</span></td>
+        <td>Sends questionnaire data to backend via POST request and returns structured analysis</td>
+      </tr>
+      <tr>
+        <td><code>downloadReport(data)</code></td>
+        <td><span class="badge badge-frontend">Frontend</span></td>
+        <td>Requests PDF from backend, creates a blob URL, and triggers automatic browser download</td>
+      </tr>
+      <tr>
+        <td><code>extractError(error)</code></td>
+        <td><span class="badge badge-frontend">Frontend</span></td>
+        <td>Parses Axios errors into user-friendly messages (validation, network, server, blob errors)</td>
+      </tr>
+      <tr>
+        <td><code>handleChange(field, value)</code></td>
+        <td><span class="badge badge-frontend">Frontend</span></td>
+        <td>Updates form state and clears field-specific validation errors on edit</td>
+      </tr>
+      <tr>
+        <td><code>validate()</code></td>
+        <td><span class="badge badge-frontend">Frontend</span></td>
+        <td>Client-side validation for required fields, notes length (max 500 chars)</td>
+      </tr>
+      <tr>
+        <td><code>Analyze()</code></td>
+        <td><span class="badge badge-backend">Backend</span></td>
+        <td>Controller action: validates request, sanitizes HTML from notes, runs analysis, returns JSON</td>
+      </tr>
+      <tr>
+        <td><code>GenerateReport()</code></td>
+        <td><span class="badge badge-backend">Backend</span></td>
+        <td>Controller action: re-runs analysis server-side, generates PDF, returns as file download</td>
+      </tr>
+      <tr>
+        <td><code>AnalyzeAsync(request)</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Interface method implemented by both RuleBasedAnalyzerService and GeminiAnalyzerService</td>
+      </tr>
+      <tr>
+        <td><code>CalculateSleepDuration()</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Calculates hours between bedtime and wake-up, correctly handling overnight schedules (e.g., 23:00→07:00 = 8h)</td>
+      </tr>
+      <tr>
+        <td><code>DeterminePreference()</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Score-based preference classification: 0–2 = Early-oriented, 3–5 = Intermediate, 6–9 = Late-oriented</td>
+      </tr>
+      <tr>
+        <td><code>BuildSummary()</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Generates natural-language summary of the user's reported sleep pattern</td>
+      </tr>
+      <tr>
+        <td><code>GenerateSuggestions()</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Creates 3 personalized suggestions based on sleep duration, energy alignment, and bedtime habits</td>
+      </tr>
+      <tr>
+        <td><code>GenerateRecommendations()</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Returns 5 general sleep hygiene recommendations</td>
+      </tr>
+      <tr>
+        <td><code>FormatTime()</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Converts 24-hour TimeSpan to 12-hour AM/PM display format</td>
+      </tr>
+      <tr>
+        <td><code>BuildPrompt()</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Constructs the Gemini AI prompt with user data, safety rules, and expected JSON schema</td>
+      </tr>
+      <tr>
+        <td><code>ParseAiResponse()</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Cleans and deserializes the AI JSON response, strips markdown fences, validates essential fields</td>
+      </tr>
+      <tr>
+        <td><code>GenerateReport()</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Creates A4 PDF with QuestPDF: header, 6 content sections, branded styling, footer with page numbers</td>
+      </tr>
+      <tr>
+        <td><code>SectionHeading()</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Reusable PDF layout helper for section titles</td>
+      </tr>
+      <tr>
+        <td><code>InfoRow()</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Reusable PDF layout helper for label-value info rows</td>
+      </tr>
+      <tr>
+        <td><code>FormatEnergyPeak()</code></td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Converts enum values like "EarlyMorning" to display text "Early Morning"</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 3. SYSTEM ARCHITECTURE                     -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="architecture" class="page-break"><span class="num">03</span>System Architecture</h2>
+
+  <div class="arch-diagram">
+┌─────────────────────────────────────────────────────────────────┐
+│                        USER'S BROWSER                           │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  React 19 + Vite + Material UI 7                         │  │
+│  │  ┌──────────┐ ┌──────────────┐ ┌───────────────────────┐ │  │
+│  │  │ SleepForm│ │AnalysisResult│ │   SuggestionCard (×3) │ │  │
+│  │  └────┬─────┘ └──────┬───────┘ └───────────────────────┘ │  │
+│  │       │               │                                    │  │
+│  │  ┌────▼───────────────▼─────┐                             │  │
+│  │  │     HomePage.jsx          │  State Management           │  │
+│  │  │  (Orchestration Layer)    │  (React useState/useRef)    │  │
+│  │  └────────────┬──────────────┘                             │  │
+│  │               │                                            │  │
+│  │  ┌────────────▼──────────────┐                             │  │
+│  │  │      sleepApi.js          │  Axios HTTP Client          │  │
+│  │  │  POST /analyze            │  POST /report (blob)        │  │
+│  │  └────────────┬──────────────┘                             │  │
+│  └───────────────┼───────────────────────────────────────────┘  │
+└──────────────────┼──────────────────────────────────────────────┘
+                   │  HTTP (localhost:5062)
+                   │
+┌──────────────────▼──────────────────────────────────────────────┐
+│              ASP.NET Core 8 Web API                             │
+│  ┌───────────────────────────────────────────────────────────┐  │
+│  │  SleepController.cs                                       │  │
+│  │  ├── POST /api/sleep/analyze  → JSON Response             │  │
+│  │  └── POST /api/sleep/report   → PDF File Download         │  │
+│  └──────────────┬────────────────────────┬───────────────────┘  │
+│                 │                        │                       │
+│  ┌──────────────▼──────────┐  ┌──────────▼───────────────────┐  │
+│  │  ISleepAnalyzerService  │  │  PdfReportService            │  │
+│  │  ┌────────────────────┐ │  │  (QuestPDF A4 Layout)        │  │
+│  │  │ GeminiAnalyzer     │ │  │  ┌─ Header with branding     │  │
+│  │  │ (Google Gemini API)│ │  │  ├─ Sleep Schedule            │  │
+│  │  ├────────────────────┤ │  │  ├─ Pattern Summary           │  │
+│  │  │ RuleBasedAnalyzer  │ │  │  ├─ Estimated Preference      │  │
+│  │  │ (Fallback Engine)  │ │  │  ├─ Personalized Suggestions  │  │
+│  │  └────────────────────┘ │  │  ├─ General Recommendations   │  │
+│  └─────────────────────────┘  │  ├─ Disclaimer                │  │
+│                               │  └─ Footer with page numbers  │  │
+│                               └──────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+  </div>
+
+  <h3>Request Flow</h3>
+  <ol>
+    <li><strong>User fills form</strong> → Client-side validation runs → Data sent via Axios POST</li>
+    <li><strong>Backend validates</strong> → Regex time format check → HTML sanitization on notes</li>
+    <li><strong>Analysis runs</strong> → Gemini AI (if key configured) or Rule-Based fallback</li>
+    <li><strong>Response returned</strong> → JSON with summary, preference, suggestions, recommendations, disclaimer</li>
+    <li><strong>Results displayed</strong> → Fade-in animation, smooth scroll to results section</li>
+    <li><strong>PDF download</strong> → Same data re-analyzed server-side → QuestPDF generates A4 → Blob download</li>
+  </ol>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 4. TECHNOLOGY STACK                        -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="tech-stack" class="page-break"><span class="num">04</span>Technology Stack & Installed Packages</h2>
+
+  <h3>Backend — .NET 8 (ASP.NET Core Web API)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Package</th>
+        <th>Version</th>
+        <th>Purpose</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>Microsoft.NET.Sdk.Web</code></td>
+        <td>.NET 8.0</td>
+        <td>ASP.NET Core Web API framework — controllers, routing, middleware, DI</td>
+      </tr>
+      <tr>
+        <td><code>Google.GenAI</code></td>
+        <td>1.27.0</td>
+        <td>Official Google Generative AI SDK for Gemini API integration</td>
+      </tr>
+      <tr>
+        <td><code>QuestPDF</code></td>
+        <td>2026.9.1</td>
+        <td>Server-side PDF generation library (Community License) — fluent API for document layout</td>
+      </tr>
+      <tr>
+        <td><code>Swashbuckle.AspNetCore</code></td>
+        <td>6.6.2</td>
+        <td>Swagger/OpenAPI documentation generator — auto-generates API docs at /swagger</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Frontend — React 19 + Vite</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Package</th>
+        <th>Version</th>
+        <th>Purpose</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>react</code></td>
+        <td>^19.1.0</td>
+        <td>UI library — component-based architecture with hooks</td>
+      </tr>
+      <tr>
+        <td><code>react-dom</code></td>
+        <td>^19.1.0</td>
+        <td>React DOM renderer for web browsers</td>
+      </tr>
+      <tr>
+        <td><code>@mui/material</code></td>
+        <td>^7.0.0</td>
+        <td>Material UI component library — Paper, Button, TextField, Select, Slider, Snackbar, etc.</td>
+      </tr>
+      <tr>
+        <td><code>@mui/icons-material</code></td>
+        <td>^7.0.0</td>
+        <td>Material Design icons — NightsStay, WbSunny, Bolt, Hotel, AutoAwesome, PictureAsPdf, etc.</td>
+      </tr>
+      <tr>
+        <td><code>@emotion/react</code></td>
+        <td>^11.14.0</td>
+        <td>CSS-in-JS engine required by MUI for styling</td>
+      </tr>
+      <tr>
+        <td><code>@emotion/styled</code></td>
+        <td>^11.14.0</td>
+        <td>Styled components API required by MUI</td>
+      </tr>
+      <tr>
+        <td><code>axios</code></td>
+        <td>^1.9.0</td>
+        <td>HTTP client for API requests — supports JSON and blob (binary) response types</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Dev Dependencies</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Package</th>
+        <th>Version</th>
+        <th>Purpose</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>vite</code></td>
+        <td>^6.3.0</td>
+        <td>Lightning-fast frontend build tool and dev server with HMR (Hot Module Replacement)</td>
+      </tr>
+      <tr>
+        <td><code>@vitejs/plugin-react</code></td>
+        <td>^4.5.0</td>
+        <td>Vite plugin for React — enables JSX transform, fast refresh</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Runtime Requirements</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Requirement</th>
+        <th>Minimum Version</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>.NET SDK</td><td>8.0</td><td>Required for building and running the backend API</td></tr>
+      <tr><td>Node.js</td><td>18.x LTS</td><td>Required for frontend build toolchain (npm, Vite)</td></tr>
+      <tr><td>Modern Browser</td><td>Chrome 90+ / Edge 90+ / Firefox 90+</td><td>ES modules, CSS backdrop-filter, Fetch API</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 5. FOLDER STRUCTURE                        -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="folder-structure" class="page-break"><span class="num">05</span>Folder Structure</h2>
+
+  <div class="tree"><span class="folder">SleepSyncAI/</span>
+├── <span class="file">README.md</span>                              <span class="comment"># Project documentation (247 lines)</span>
+│
+├── <span class="folder">SleepSyncAI.Api/</span>                       <span class="comment"># ASP.NET Core 8 Web API</span>
+│   ├── <span class="folder">Controllers/</span>
+│   │   └── <span class="file">SleepController.cs</span>            <span class="comment"># POST /api/sleep/analyze & /report</span>
+│   ├── <span class="folder">Models/</span>
+│   │   ├── <span class="file">SleepAnalysisRequest.cs</span>       <span class="comment"># Request DTO with validation</span>
+│   │   └── <span class="file">SleepAnalysisResponse.cs</span>      <span class="comment"># Response DTO</span>
+│   ├── <span class="folder">Services/</span>
+│   │   ├── <span class="file">ISleepAnalyzerService.cs</span>      <span class="comment"># Analyzer interface</span>
+│   │   ├── <span class="file">RuleBasedAnalyzerService.cs</span>   <span class="comment"># Deterministic fallback (215 lines)</span>
+│   │   ├── <span class="file">GeminiAnalyzerService.cs</span>      <span class="comment"># AI-powered analyzer (162 lines)</span>
+│   │   └── <span class="file">PdfReportService.cs</span>           <span class="comment"># QuestPDF report generator (209 lines)</span>
+│   ├── <span class="folder">Properties/</span>
+│   │   └── <span class="file">launchSettings.json</span>           <span class="comment"># Launch profiles (ports, env)</span>
+│   ├── <span class="file">Program.cs</span>                        <span class="comment"># App configuration & DI (86 lines)</span>
+│   ├── <span class="file">appsettings.json</span>                  <span class="comment"># Configuration settings</span>
+│   ├── <span class="file">appsettings.Development.json</span>      <span class="comment"># Dev environment settings</span>
+│   └── <span class="file">SleepSyncAI.Api.csproj</span>            <span class="comment"># .NET project file with NuGet refs</span>
+│
+└── <span class="folder">sleepsyncai.client/</span>                    <span class="comment"># React 19 + Vite frontend</span>
+    ├── <span class="folder">src/</span>
+    │   ├── <span class="folder">components/</span>
+    │   │   ├── <span class="file">Header.jsx</span>                <span class="comment"># App header with moon icon branding</span>
+    │   │   ├── <span class="file">Footer.jsx</span>                <span class="comment"># Wellness disclaimer footer</span>
+    │   │   ├── <span class="file">SleepForm.jsx</span>             <span class="comment"># 6-field questionnaire form (288 lines)</span>
+    │   │   ├── <span class="file">AnalysisResults.jsx</span>       <span class="comment"># Analysis display component (202 lines)</span>
+    │   │   └── <span class="file">SuggestionCard.jsx</span>        <span class="comment"># Reusable suggestion card (56 lines)</span>
+    │   ├── <span class="folder">pages/</span>
+    │   │   └── <span class="file">HomePage.jsx</span>              <span class="comment"># Main page orchestration (181 lines)</span>
+    │   ├── <span class="folder">services/</span>
+    │   │   └── <span class="file">sleepApi.js</span>               <span class="comment"># Axios API service (88 lines)</span>
+    │   ├── <span class="folder">theme/</span>
+    │   │   └── <span class="file">theme.js</span>                  <span class="comment"># MUI dark theme config (121 lines)</span>
+    │   ├── <span class="file">App.jsx</span>                       <span class="comment"># Root component with ThemeProvider</span>
+    │   └── <span class="file">main.jsx</span>                      <span class="comment"># React entry point</span>
+    ├── <span class="file">index.html</span>                        <span class="comment"># HTML template with Inter font</span>
+    ├── <span class="file">vite.config.js</span>                    <span class="comment"># Vite dev server config (port 5173)</span>
+    └── <span class="file">package.json</span>                      <span class="comment"># NPM dependencies & scripts</span></div>
+
+  <p><strong>Total source files:</strong> 21 &nbsp;|&nbsp; <strong>Total source code:</strong> ~1,900 lines &nbsp;|&nbsp; <strong>Total size:</strong> ~60 KB</p>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 6. BACKEND FILES BREAKDOWN                 -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="backend-files" class="page-break"><span class="num">06</span>Backend — File-by-File Breakdown</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Lines</th>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>Program.cs</code></td>
+        <td>86</td>
+        <td><span class="badge badge-config">Config</span></td>
+        <td>Application entry point. Configures: QuestPDF Community license, Controllers + Swagger, CORS policy (ports 5173 & 3000), conditional DI registration (Gemini vs Rule-Based based on API key presence), PdfReportService registration, global exception handler, middleware pipeline.</td>
+      </tr>
+      <tr>
+        <td><code>SleepController.cs</code></td>
+        <td>89</td>
+        <td><span class="badge badge-backend">Controller</span></td>
+        <td>API controller with 2 endpoints. <code>POST /analyze</code>: validates time formats, sanitizes HTML from notes, runs analysis, returns JSON. <code>POST /report</code>: same validation, re-runs analysis server-side (doesn't trust client data), generates PDF, returns as file download.</td>
+      </tr>
+      <tr>
+        <td><code>SleepAnalysisRequest.cs</code></td>
+        <td>32</td>
+        <td><span class="badge badge-model">Model</span></td>
+        <td>Request DTO with 6 properties. Data annotations: [Required], [RegularExpression] for time format (HH:mm), [RegularExpression] for enum values (EnergyPeak, PreferredSchedule), [Range(1,24)] for sleep hours, [MaxLength(500)] for notes.</td>
+      </tr>
+      <tr>
+        <td><code>SleepAnalysisResponse.cs</code></td>
+        <td>12</td>
+        <td><span class="badge badge-model">Model</span></td>
+        <td>Response DTO with 6 properties: Summary, EstimatedPreference, ReportedSleepDuration, Suggestions (list), GeneralRecommendations (list), Disclaimer.</td>
+      </tr>
+      <tr>
+        <td><code>ISleepAnalyzerService.cs</code></td>
+        <td>13</td>
+        <td><span class="badge badge-service">Interface</span></td>
+        <td>Service interface with single method <code>AnalyzeAsync(SleepAnalysisRequest)</code>. Implemented by both analyzers for dependency injection.</td>
+      </tr>
+      <tr>
+        <td><code>RuleBasedAnalyzerService.cs</code></td>
+        <td>215</td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Full deterministic analyzer. Calculates overnight sleep duration, uses 3-factor scoring (bedtime hour + energy peak + preferred schedule = 0–9 score), generates contextual suggestions based on sleep duration/energy alignment/bedtime habits, provides 5 general recommendations, includes wellness disclaimer.</td>
+      </tr>
+      <tr>
+        <td><code>GeminiAnalyzerService.cs</code></td>
+        <td>162</td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>AI-powered analyzer. Constructs detailed prompt with safety rules, expected JSON schema, and user data. Calls Gemini API, strips markdown fences from response, deserializes JSON, validates essential fields, enforces disclaimer. Falls back to RuleBasedAnalyzer on any failure.</td>
+      </tr>
+      <tr>
+        <td><code>PdfReportService.cs</code></td>
+        <td>209</td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>QuestPDF document generator. Creates A4 page with: branded header (SleepSync AI + date), 6 content sections (schedule, summary, preference badge, numbered suggestions, bulleted recommendations, disclaimer box), and footer with page numbers.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 7. FRONTEND FILES BREAKDOWN                -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="frontend-files" class="page-break"><span class="num">07</span>Frontend — File-by-File Breakdown</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>File</th>
+        <th>Lines</th>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>main.jsx</code></td>
+        <td>10</td>
+        <td><span class="badge badge-config">Entry</span></td>
+        <td>React entry point. Creates root, renders App in StrictMode.</td>
+      </tr>
+      <tr>
+        <td><code>App.jsx</code></td>
+        <td>29</td>
+        <td><span class="badge badge-frontend">Component</span></td>
+        <td>Root component. Wraps app in ThemeProvider + CssBaseline. Layout: Header → Container(HomePage) → Footer. Background: navy gradient.</td>
+      </tr>
+      <tr>
+        <td><code>theme.js</code></td>
+        <td>121</td>
+        <td><span class="badge badge-config">Config</span></td>
+        <td>MUI createTheme configuration. Dark mode palette (navy/teal), Inter typography, custom component overrides for Button (gradient), Paper (no image), TextField (teal borders), Select, Slider.</td>
+      </tr>
+      <tr>
+        <td><code>sleepApi.js</code></td>
+        <td>88</td>
+        <td><span class="badge badge-service">Service</span></td>
+        <td>Axios HTTP client. Base URL: localhost:5062. Two exports: analyzeSleep (POST JSON), downloadReport (POST blob → create URL → trigger download → cleanup). Error handler for validation/network/server/blob errors.</td>
+      </tr>
+      <tr>
+        <td><code>Header.jsx</code></td>
+        <td>41</td>
+        <td><span class="badge badge-frontend">Component</span></td>
+        <td>AppBar with centered branding. NightsStay moon icon with glow effect. Gradient text "SleepSync AI". Dark background with subtle teal border.</td>
+      </tr>
+      <tr>
+        <td><code>Footer.jsx</code></td>
+        <td>44</td>
+        <td><span class="badge badge-frontend">Component</span></td>
+        <td>Wellness disclaimer footer. Displays mandatory non-medical disclaimer, divider, and copyright year (dynamic). Gradient background fade.</td>
+      </tr>
+      <tr>
+        <td><code>SleepForm.jsx</code></td>
+        <td>288</td>
+        <td><span class="badge badge-frontend">Component</span></td>
+        <td>Main questionnaire form. 6 fields: Bedtime (time picker), Wake-up Time (time picker), Energy Peak (select dropdown with 5 options), Preferred Schedule (select with 3 options), Sleep Duration (slider 1–16h with step 0.5), Notes (multiline with character counter). Glassmorphism paper card. Teal icon adornments. Submit button with loading spinner.</td>
+      </tr>
+      <tr>
+        <td><code>AnalysisResults.jsx</code></td>
+        <td>202</td>
+        <td><span class="badge badge-frontend">Component</span></td>
+        <td>Results display. Sections: title, gradient summary card, two stat cards (preference chip + sleep duration), personalized suggestions (SuggestionCards), general recommendations (bulleted list), and italic disclaimer. Fade-in animation (800ms).</td>
+      </tr>
+      <tr>
+        <td><code>SuggestionCard.jsx</code></td>
+        <td>56</td>
+        <td><span class="badge badge-frontend">Component</span></td>
+        <td>Reusable numbered suggestion card. Left teal border accent. Numbered circle or lightbulb icon. Hover effect: translateX(4px) + teal glow shadow. Glassmorphism backdrop-filter.</td>
+      </tr>
+      <tr>
+        <td><code>HomePage.jsx</code></td>
+        <td>181</td>
+        <td><span class="badge badge-frontend">Component</span></td>
+        <td>Page orchestrator. State: formData, analysis, loading, pdfLoading, error. Hero section with gradient title "Understand Your Sleep Patterns". Form → Results → Download PDF button. Smooth auto-scroll to results. Error Snackbar with auto-dismiss (8s).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 8. API ENDPOINTS                           -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="api-endpoints" class="page-break"><span class="num">08</span>API Endpoints</h2>
+
+  <h3>POST <code>/api/sleep/analyze</code></h3>
+  <p>Analyzes sleep questionnaire data and returns personalized insights.</p>
+
+  <h4>Request Body</h4>
+  <pre><code>{
+  "bedtime": "23:00",
+  "wakeUpTime": "07:00",
+  "energyPeak": "LateMorning",
+  "preferredSchedule": "Flexible",
+  "averageSleepHours": 8,
+  "notes": ""
+}</code></pre>
+
+  <h4>Request Validation Rules</h4>
+  <table>
+    <thead>
+      <tr><th>Field</th><th>Required</th><th>Validation</th><th>Accepted Values</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>bedtime</code></td><td>✅</td><td>HH:mm regex + TimeSpan.TryParse</td><td>00:00 – 23:59</td></tr>
+      <tr><td><code>wakeUpTime</code></td><td>✅</td><td>HH:mm regex + TimeSpan.TryParse</td><td>00:00 – 23:59</td></tr>
+      <tr><td><code>energyPeak</code></td><td>✅</td><td>Regex enum match</td><td>EarlyMorning, LateMorning, Afternoon, Evening, Night</td></tr>
+      <tr><td><code>preferredSchedule</code></td><td>✅</td><td>Regex enum match</td><td>Early, Flexible, Late</td></tr>
+      <tr><td><code>averageSleepHours</code></td><td>✅</td><td>Range 1–24</td><td>Decimal allowed (e.g., 7.5)</td></tr>
+      <tr><td><code>notes</code></td><td>❌</td><td>Max 500 chars, HTML stripped</td><td>Free text</td></tr>
+    </tbody>
+  </table>
+
+  <h4>Success Response (200 OK)</h4>
+  <pre><code>{
+  "summary": "Based on your reported schedule, you typically go to bed around 11:00 PM...",
+  "estimatedPreference": "Intermediate",
+  "reportedSleepDuration": "8 hours (calculated interval: ~8 hours)",
+  "suggestions": [
+    "Your ~8-hour sleep window falls within the recommended range...",
+    "Your energy peak and schedule preference appear well-aligned...",
+    "Reduce bright-screen exposure for 30-60 minutes before bedtime..."
+  ],
+  "generalRecommendations": [
+    "Keep your wake-up time reasonably consistent...",
+    "Create a relaxing pre-sleep routine...",
+    "Keep your bedroom cool, dark, and quiet...",
+    "Avoid caffeine at least 6 hours before bedtime.",
+    "Track your energy levels for a week or two..."
+  ],
+  "disclaimer": "This is an informal wellness estimate..."
+}</code></pre>
+
+  <h4>Validation Error (400 Bad Request)</h4>
+  <pre><code>{
+  "errors": {
+    "Bedtime": ["Bedtime is required."],
+    "EnergyPeak": ["Energy peak must be one of: EarlyMorning, LateMorning, Afternoon, Evening, Night."]
+  }
+}</code></pre>
+
+  <hr>
+
+  <h3>POST <code>/api/sleep/report</code></h3>
+  <p>Generates and returns a PDF report. Accepts the same request body as <code>/analyze</code>.</p>
+  <p><strong>Response:</strong> <code>application/pdf</code> binary file with <code>Content-Disposition: attachment; filename="SleepSync-Report.pdf"</code></p>
+  <p>The analysis is re-run server-side to ensure data integrity — no client-supplied analysis data is trusted.</p>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 9. ANALYSIS ENGINE                         -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="analysis-engine" class="page-break"><span class="num">09</span>How the Analysis Engine Works</h2>
+
+  <h3>Dual-Engine Architecture</h3>
+  <p>The application uses a strategy pattern with two interchangeable implementations:</p>
+
+  <table>
+    <thead>
+      <tr><th>Engine</th><th>Activation Condition</th><th>Internet Required</th><th>Response Style</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>GeminiAnalyzerService</strong></td>
+        <td>Gemini API key is configured</td>
+        <td>✅ Yes</td>
+        <td>Natural language, conversational, AI-generated</td>
+      </tr>
+      <tr>
+        <td><strong>RuleBasedAnalyzerService</strong></td>
+        <td>No API key OR Gemini fails</td>
+        <td>❌ No — fully offline</td>
+        <td>Template-based, deterministic, consistent</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Rule-Based Scoring Algorithm</h3>
+  <p>The fallback engine uses a 3-factor scoring system to estimate schedule preference:</p>
+
+  <table>
+    <thead>
+      <tr><th>Factor</th><th>Score 0</th><th>Score 1</th><th>Score 2</th><th>Score 3</th><th>Score 4</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Bedtime</strong></td>
+        <td>8–10 PM</td>
+        <td>10–11:30 PM</td>
+        <td>11:30 PM–1 AM</td>
+        <td>1–4 AM</td>
+        <td>—</td>
+      </tr>
+      <tr>
+        <td><strong>Energy Peak</strong></td>
+        <td>Early Morning</td>
+        <td>Late Morning</td>
+        <td>Afternoon</td>
+        <td>Evening</td>
+        <td>Night</td>
+      </tr>
+      <tr>
+        <td><strong>Preferred Schedule</strong></td>
+        <td>Early</td>
+        <td>Flexible</td>
+        <td>Late</td>
+        <td>—</td>
+        <td>—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Total score range: 0–9</strong></p>
+  <ul>
+    <li><strong>0–2:</strong> Early-oriented</li>
+    <li><strong>3–5:</strong> Intermediate</li>
+    <li><strong>6–9:</strong> Late-oriented</li>
+  </ul>
+
+  <h3>Overnight Sleep Duration Calculation</h3>
+  <p>The engine correctly handles midnight crossover:</p>
+  <ul>
+    <li>Same-day: <code>01:00 → 09:00</code> = 8 hours (wakeUp – bedtime)</li>
+    <li>Overnight: <code>23:00 → 07:00</code> = 8 hours (24 – bedtime + wakeUp)</li>
+  </ul>
+
+  <h3>Personalized Suggestions Logic</h3>
+  <p>Three contextual suggestions are generated based on:</p>
+  <ol>
+    <li><strong>Sleep duration:</strong> Under 6h (increase), over 9h (consult doctor), 6–9h (maintain)</li>
+    <li><strong>Energy alignment:</strong> Morning peak + late schedule (misaligned), evening peak + early schedule (misaligned), else (well-aligned)</li>
+    <li><strong>Bedtime habits:</strong> After midnight (darkness/quiet advice), before 10 PM (protect schedule), else (reduce screen time)</li>
+  </ol>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 10. PDF REPORT                             -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="pdf-report"><span class="num">10</span>PDF Report Details</h2>
+
+  <p>The PDF is generated entirely server-side using the QuestPDF library (Community License).</p>
+
+  <h3>Report Layout</h3>
+  <table>
+    <thead>
+      <tr><th>Section</th><th>Content</th><th>Styling</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Header</td><td>"SleepSync AI" branding + report subtitle + date</td><td>Teal accent (#14B8A6), 24pt bold title, horizontal rule</td></tr>
+      <tr><td>1. Your Sleep Schedule</td><td>Bedtime, Wake-up, Peak Energy, Preferred Schedule, Duration, Notes</td><td>Label-value rows with bold labels</td></tr>
+      <tr><td>2. Pattern Summary</td><td>Natural language summary paragraph</td><td>11pt text, 1.5× line height</td></tr>
+      <tr><td>3. Estimated Preference</td><td>Preference badge + explanatory note</td><td>Teal background badge, 13pt bold white text, italic footnote</td></tr>
+      <tr><td>4. Personalized Suggestions</td><td>Numbered list (1, 2, 3)</td><td>Teal numbered markers, 11pt text</td></tr>
+      <tr><td>5. General Recommendations</td><td>Bulleted list (5 items)</td><td>Teal bullet markers, 10.5pt text</td></tr>
+      <tr><td>6. Wellness Disclaimer</td><td>Disclaimer text in grey box</td><td>Light grey background (#F8FAFC), 9pt italic</td></tr>
+      <tr><td>Footer</td><td>"SleepSync AI — Wellness Report" + page numbers</td><td>8pt grey, "Page X of Y" format</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Brand Colors in PDF</h3>
+  <table>
+    <thead>
+      <tr><th>Name</th><th>Hex</th><th>Usage</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Primary</td><td><code>#0F172A</code></td><td>Body text, section headings</td></tr>
+      <tr><td>Accent</td><td><code>#14B8A6</code></td><td>Title, badge background, horizontal rules, list markers</td></tr>
+      <tr><td>Light BG</td><td><code>#F8FAFC</code></td><td>Disclaimer box background</td></tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 11. CONFIGURATION                          -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="configuration" class="page-break"><span class="num">11</span>Configuration & Setup</h2>
+
+  <h3>Running the Application</h3>
+
+  <h4>Backend (Terminal 1)</h4>
+  <pre><code>cd SleepSyncAI\SleepSyncAI.Api
+dotnet restore
+dotnet build
+dotnet run --launch-profile http</code></pre>
+  <p>→ Starts on <code>http://localhost:5062</code> &nbsp;|&nbsp; Swagger at <code>/swagger</code></p>
+
+  <h4>Frontend (Terminal 2)</h4>
+  <pre><code>cd SleepSyncAI\sleepsyncai.client
+npm install
+npm run dev</code></pre>
+  <p>→ Starts on <code>http://localhost:5173</code></p>
+
+  <h3>Configuring the Gemini API Key (Optional)</h3>
+
+  <div class="info-box note">
+    <strong>💡 Note</strong>
+    The app works fully without an API key using the rule-based fallback. The Gemini API key is optional and only needed for AI-powered natural language analysis.
+  </div>
+
+  <h4>Option 1: .NET User Secrets (Recommended)</h4>
+  <pre><code>cd SleepSyncAI\SleepSyncAI.Api
+dotnet user-secrets init
+dotnet user-secrets set "Gemini:ApiKey" "your-api-key-here"</code></pre>
+
+  <h4>Option 2: Environment Variable</h4>
+  <pre><code>$env:GEMINI_API_KEY = "your-api-key-here"</code></pre>
+
+  <h3>Configuration Files</h3>
+  <table>
+    <thead>
+      <tr><th>File</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>appsettings.json</code></td><td>Logging levels, allowed hosts, Gemini API key + model name</td></tr>
+      <tr><td><code>appsettings.Development.json</code></td><td>Development-specific log level overrides</td></tr>
+      <tr><td><code>launchSettings.json</code></td><td>HTTP launch profile (port 5062), environment setting</td></tr>
+      <tr><td><code>vite.config.js</code></td><td>Vite dev server port (5173), React plugin</td></tr>
+      <tr><td><code>package.json</code></td><td>NPM scripts (dev, build, preview), dependencies</td></tr>
+    </tbody>
+  </table>
+
+  <h3>CORS Configuration</h3>
+  <p>The backend allows requests from these origins:</p>
+  <ul>
+    <li><code>http://localhost:5173</code> — Vite dev server (default)</li>
+    <li><code>http://localhost:3000</code> — Alternate dev port</li>
+  </ul>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 12. SECURITY                               -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="security"><span class="num">12</span>Security Measures</h2>
+
+  <table>
+    <thead>
+      <tr><th>Measure</th><th>Implementation</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>API Key Protection</strong></td>
+        <td>Gemini API key is read server-side only from User Secrets, appsettings, or environment variable. Never sent to frontend.</td>
+      </tr>
+      <tr>
+        <td><strong>Input Validation</strong></td>
+        <td>Data annotations + regex validation on all required fields. Additional TimeSpan.TryParse check on time fields.</td>
+      </tr>
+      <tr>
+        <td><strong>HTML Sanitization</strong></td>
+        <td>Notes field is stripped of all HTML tags using <code>Regex.Replace(notes, "&lt;[^&gt;]*&gt;", "")</code> before processing.</td>
+      </tr>
+      <tr>
+        <td><strong>Error Handling</strong></td>
+        <td>Global exception handler returns generic error message. Stack traces are never exposed to clients.</td>
+      </tr>
+      <tr>
+        <td><strong>CORS Policy</strong></td>
+        <td>Restricted to specific frontend origins (localhost:5173 and :3000). Not open to all origins.</td>
+      </tr>
+      <tr>
+        <td><strong>Server-Side Report</strong></td>
+        <td>PDF report re-runs analysis on the server. Client cannot inject fabricated analysis data into the report.</td>
+      </tr>
+      <tr>
+        <td><strong>No Data Persistence</strong></td>
+        <td>No database, no cookies, no sessions. All data is processed in-memory and discarded after the response.</td>
+      </tr>
+      <tr>
+        <td><strong>AI Safety Prompt</strong></td>
+        <td>Gemini prompt includes strict rules: no medical diagnosis, no chronotype claims, cautious language only.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!-- 13. LIMITATIONS                            -->
+  <!-- ══════════════════════════════════════════ -->
+  <h2 id="limitations"><span class="num">13</span>Known Limitations</h2>
+
+  <table>
+    <thead>
+      <tr><th>Limitation</th><th>Details</th><th>Reason</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>No data persistence</td>
+        <td>Sleep data is not saved between sessions</td>
+        <td>MVP design decision — stateless architecture</td>
+      </tr>
+      <tr>
+        <td>No user authentication</td>
+        <td>No login, no accounts, no saved history</td>
+        <td>Privacy-first design — no user data stored</td>
+      </tr>
+      <tr>
+        <td>AI availability</td>
+        <td>Gemini API requires API key and internet</td>
+        <td>Rule-based fallback works fully offline</td>
+      </tr>
+      <tr>
+        <td>PDF fonts</td>
+        <td>Uses system fonts; appearance may vary across OS</td>
+        <td>QuestPDF uses fonts available on the server machine</td>
+      </tr>
+      <tr>
+        <td>Single-page app</td>
+        <td>No routing — entire app is one page</td>
+        <td>MVP scope — single questionnaire + results flow</td>
+      </tr>
+      <tr>
+        <td>Not a medical tool</td>
+        <td>Cannot diagnose sleep disorders or determine biological chronotype</td>
+        <td>Educational/wellness purpose only</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <p><strong>SleepSync AI — Project Documentation</strong></p>
+    <p>Version 1.0.0 &nbsp;|&nbsp; October 2026 &nbsp;|&nbsp; Educational Wellness Tool</p>
+    <p style="margin-top: 8px; font-size: 0.72rem; color: #94A3B8;">
+      This document was auto-generated. To save as PDF, click the "Save as PDF / Print" button at the top of the page or use Ctrl+P → Save as PDF.
+    </p>
+  </div>
+
+</div>
+
+</body>
+</html>
