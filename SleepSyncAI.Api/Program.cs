@@ -1,18 +1,21 @@
+
 using Google.GenAI;
+using Microsoft.OpenApi.Models;
 using QuestPDF.Infrastructure;
 using SleepSyncAI.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── QuestPDF License ──
+// QuestPDF License
 QuestPDF.Settings.License = LicenseType.Community;
 
-// ── Controllers & Swagger ──
+// Controllers and Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "SleepSync AI API",
         Version = "v1",
@@ -20,58 +23,59 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// ── CORS ──
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
         policy.WithOrigins(
-                "http://localhost:5173",  // Vite dev server
-                "http://localhost:3000"   // Alternate dev port
+                "http://localhost:5173",
+                "http://localhost:3000",
+                 "https://sleepsyncaiclient.vercel.app"
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
 });
 
-// ── AI Service Registration ──
-// Read API key from configuration (appsettings, user-secrets, or environment variable)
+// AI Service Registration
 var geminiApiKey = builder.Configuration["Gemini:ApiKey"]
                    ?? Environment.GetEnvironmentVariable("GEMINI_API_KEY");
 
 if (!string.IsNullOrWhiteSpace(geminiApiKey))
 {
-    // Gemini API key is available — use AI-powered analyzer
     builder.Services.AddSingleton(new Client(apiKey: geminiApiKey));
     builder.Services.AddScoped<ISleepAnalyzerService, GeminiAnalyzerService>();
-    Console.WriteLine("✓ Gemini AI service configured — using AI-powered analysis.");
+    Console.WriteLine("Gemini AI service configured.");
 }
 else
 {
-    // No API key — use rule-based fallback
     builder.Services.AddScoped<ISleepAnalyzerService, RuleBasedAnalyzerService>();
-    Console.WriteLine("ℹ No Gemini API key found — using rule-based analysis fallback.");
+    Console.WriteLine("No Gemini API key found. Using rule-based analysis.");
 }
 
-// ── PDF Service ──
+// PDF Service
 builder.Services.AddScoped<PdfReportService>();
 
 var app = builder.Build();
 
-// ── Middleware Pipeline ──
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Swagger enabled in Development and Production
+app.UseSwagger();
 
-// Global exception handler — never expose stack traces to client
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Sleep Sync AI API v1");
+    options.RoutePrefix = "swagger";
+});
+
+// Global exception handler
 app.UseExceptionHandler(errorApp =>
 {
     errorApp.Run(async context =>
     {
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
+
         await context.Response.WriteAsJsonAsync(new
         {
             error = "An unexpected error occurred. Please try again later."
@@ -80,6 +84,7 @@ app.UseExceptionHandler(errorApp =>
 });
 
 app.UseCors("AllowFrontend");
+
 app.MapControllers();
 
 app.Run();
