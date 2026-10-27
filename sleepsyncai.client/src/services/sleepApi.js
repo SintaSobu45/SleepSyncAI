@@ -1,6 +1,16 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5062/api/sleep';
+// const API_BASE_URL = 'http://localhost:5062/api/sleep';
+
+// const apiClient = axios.create({
+//   baseURL: API_BASE_URL,
+//   headers: {
+//     'Content-Type': 'application/json',
+//   },
+// });
+
+
+const API_BASE_URL = 'https://sleepsyncai.onrender.com/api/sleep';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -8,6 +18,7 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
 
 /**
  * Sends sleep questionnaire data to the backend for analysis.
@@ -77,11 +88,16 @@ function extractError(error) {
     return new Error(`Server error (${error.response.status}). Please try again.`);
   }
 
-  if (error.request) {
-    return new Error(
-      'Cannot reach the server. Please ensure the backend is running on http://localhost:5062.'
-    );
-  }
+  // if (error.request) {
+  //   return new Error(
+  //     'Cannot reach the server. Please ensure the backend is running on http://localhost:5062.'
+  //   );
+  // }
 
+  if (error.request) {
+  return new Error(
+    'Cannot reach the server. Please try again later.'
+  );
+}
   return new Error(error.message || 'An unexpected error occurred.');
 }
