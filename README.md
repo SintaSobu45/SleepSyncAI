@@ -1,160 +1,344 @@
 # SleepSync AI — Personalized Chronotype & Sleep Rhythm Platform
 
-SleepSync AI is an AI-powered educational wellness application and circadian analysis platform. It collects detailed self-reported data regarding sleep timing, preferred sleep/wake hours, diurnal energy patterns, and lifestyle habits to generate a comprehensive, personalized **Chronotype & Circadian Rhythm Report** with an interactive 24-hour diurnal energy curve and executive downloadable PDF report.
+SleepSync AI is an AI-powered educational wellness application built with React and ASP.NET Core 8 Web API. It analyzes self-reported sleep schedules, natural sleep preferences, daily energy patterns, and lifestyle habits to generate personalized chronotype insights, an interactive 24-hour energy curve, and a downloadable PDF report.
 
-> **Important Educational Wellness Disclaimer:** SleepSync AI is an educational wellness tool and informational platform, NOT a medical diagnostic instrument. It does not diagnose sleep disorders (e.g., insomnia, sleep apnea, or circadian rhythm sleep-wake disorders), determine genetic chronotypes with clinical certainty, or provide medical treatment advice. For clinical sleep concerns, consult a board-certified sleep specialist.
+**Live Demo:** https://sleepsyncaiclient.vercel.app/
 
----
+**Backend API & Swagger:** https://sleepsyncai.onrender.com/swagger
 
-## 🌟 Key Platform Capabilities
+**GitHub Repository:** https://github.com/SintaSobu45/SleepSyncAI
 
-### 1. Multi-Step Chronotype Questionnaire Wizard
-- **Section A: Natural Sleep Preferences** — Habitual vs. free-day bedtimes, spontaneous wake times, average sleep duration, and weekend sleep shifts (social jetlag).
-- **Section B: Daily Energy Patterns** — Peak physical energy, mental alertness windows, lowest energy troughs, preferred analytical windows, creative windows, and afternoon dip characteristics.
-- **Section C: Lifestyle & Sleep Habits** — Work/study schedules, exercise timing & frequency, caffeine consumption level & cutoff time, pre-bed screen exposure, night awakenings, and naps.
-- **Section D: Sleep Quality & Subjective Rhythms** — Sleep onset latency, morning refreshedness rating, schedule consistency, and daytime fatigue.
-- **Review & Submission** — Step-by-step validation, back/next navigation, answer review card, and state preservation.
-
-### 2. Scientific Chronotype Classification Engine
-- **Midpoint of Sleep on Free Days ($MSF$)** calculation inspired by the Munich Chronotype Questionnaire (MCTQ).
-- Multi-dimensional scoring across sleep timing, peak alertness, and subjective diurnal orientation.
-- Three scientifically grounded estimated categories:
-  - **AM-Shifted (Morning-Oriented):** Early rise, rapid morning activation, early focus peak, earlier evening melatonin onset.
-  - **Bi-Phasic / Intermediate:** Balanced diurnal rhythm, robust morning analytical peak, natural post-lunch dip, late-afternoon recovery.
-  - **PM-Shifted (Evening-Oriented):** Night focus, late-day mental flow, extended evening energy, morning sleep inertia.
-- Transparent calculation breakdown and confidence rating (High, Moderate, Inconclusive).
-- Social jetlag metric calculating the divergence between workdays and free days.
-
-### 3. AI-Powered Personalization (Google Gemini) with Infallible Offline Fallback
-- Backend-orchestrated Google Gemini integration (`gemini-2.0-flash`) using structured JSON schemas.
-- Strictly separates classification (calculated deterministically by C# engine) from prose generation (personalized by Gemini).
-- Strict AI safety rules preventing medical diagnosis or hallucinations.
-- Infallible rule-based fallback: If Gemini is offline, timed out, or unconfigured, the comprehensive report is generated deterministically without degradation.
-
-### 4. Interactive 24-Hour Circadian Energy Curve Chart
-- Custom responsive SVG visualization with smooth cubic Bezier spline curves and ambient gradient fill.
-- Visualizes 5 core diurnal phases: **Cognitive Peak**, **Afternoon Dip**, **Creative Recovery**, **Melatonin Wind-Down**, and **Restorative Sleep Window**.
-- Interactive hover/touch inspection: Displays exact time, estimated alertness percentage, phase name, and suggested focus activities.
-
-### 5. Multi-Page Executive QuestPDF Report
-- Executive Cover Page with title, branding, user profile summary, and assessment metadata.
-- Table of Contents.
-- Section 1: What is a Chronotype? (molecular clockwork & 2017 Nobel Prize context).
-- Section 2: Your Chronotype Results & Strengths.
-- Section 3: Daily Energy Curve Architecture table.
-- Section 4: Period-Specific Focus, Afternoon Dip & Recovery Optimization Protocols.
-- Section 5: Personalized 24-Hour Schedule Matrix.
-- Section 6: Verified Scientific References (Hall, Rosbash, Young 2017; Horne & Östberg 1976; Roenneberg 2003; Facer-Childs 2018; AASM).
-- Educational Wellness Disclaimer on every page.
+> **Important Educational Wellness Disclaimer:** SleepSync AI is an educational wellness tool, not a medical diagnostic application. It does not diagnose sleep disorders, establish biological chronotypes with clinical certainty, or replace professional medical advice. Consult a qualified healthcare professional for sleep-related medical concerns.
 
 ---
 
-## 🛠 Technology Stack
+## Key Features
 
-| Layer | Technology | Version | Purpose |
-|---|---|---|---|
-| **Backend** | ASP.NET Core Web API | .NET 8.0 | High-performance RESTful API, DTO validation, classification engine |
-| **PDF Engine** | QuestPDF | 2026.9.1 | Server-side multi-page PDF generation (Community License) |
-| **AI Integration** | Google Gemini API | Google.GenAI 1.27.0 | Structured JSON personalizations (server-side only) |
-| **Frontend** | React | 19.1.0 (JSX) | Component architecture, responsive state management |
-| **Build Tool** | Vite | 6.3.0 | Rapid development server and optimized production bundling |
-| **UI Library** | Material UI (MUI) | 7.0.0 | Dark wellness theme, glassmorphism cards, Stepper |
-| **HTTP Client** | Axios | 1.9.0 | API communication with binary blob streaming for PDF download |
+### 1. Multi-Step Chronotype Assessment
+
+- Interactive five-step questionnaire.
+- Natural sleep preferences and habitual sleep schedules.
+- Free-day sleep timing and social jetlag assessment.
+- Daily physical energy and mental alertness patterns.
+- Lifestyle habits, caffeine consumption, exercise, naps, and screen exposure.
+- Sleep quality and subjective daytime energy assessment.
+- Step-by-step validation and answer review.
+
+### 2. Chronotype Classification Engine
+
+The backend calculates an estimated chronotype using self-reported information and deterministic C# scoring logic.
+
+Three estimated categories:
+
+- **AM-Shifted (Morning-Oriented):** Earlier sleep and wake preferences with stronger morning alertness.
+- **Bi-Phasic / Intermediate:** More balanced daily energy patterns with possible morning and afternoon focus periods.
+- **PM-Shifted (Evening-Oriented):** Later sleep preferences and stronger evening alertness.
+
+Additional analysis includes:
+
+- Midpoint of Sleep on Free Days (MSF).
+- Social jetlag estimation.
+- Chronotype scoring breakdown.
+- Confidence rating.
+- Personalized daily schedule.
+
+These categories are educational estimates, not clinical chronotype diagnoses.
+
+### 3. AI-Powered Personalization
+
+- Google Gemini API integration.
+- AI-generated natural-language explanations and personalized suggestions.
+- Backend-controlled AI requests.
+- Classification remains controlled by the deterministic C# engine.
+- Rule-based fallback when Gemini is unavailable, times out, or is not configured.
+- AI responses are handled using structured output and validation.
+
+### 4. Interactive 24-Hour Energy Curve
+
+- Responsive SVG-based energy visualization.
+- Displays estimated alertness across a 24-hour period.
+- Highlights cognitive peaks, afternoon dips, recovery periods, evening wind-down, and sleep windows.
+- Interactive time and energy inspection.
+- Personalized activity suggestions.
+
+### 5. Downloadable PDF Report
+
+Generated using QuestPDF on the backend.
+
+The report includes:
+
+- Chronotype result and profile summary.
+- Classification explanation and confidence rating.
+- Daily energy curve information.
+- Personalized daily schedule.
+- Focus and recovery suggestions.
+- General sleep wellness recommendations.
+- Educational wellness disclaimer.
+
+### 6. Responsive User Interface
+
+- React component-based architecture.
+- Material UI components.
+- Light, soothing wellness-oriented colour palette.
+- Responsive questionnaire, charts, and report views.
+- User-friendly explanations and accessible content.
 
 ---
 
-## 📁 Project Structure
+## Technology Stack
 
+| Layer | Technology |
+|---|---|
+| Frontend | React 19 (JavaScript JSX) |
+| Build Tool | Vite |
+| UI Library | Material UI 7 |
+| HTTP Client | Axios |
+| Backend | ASP.NET Core 8 Web API |
+| Language | C# |
+| AI Integration | Google Gemini API |
+| Gemini SDK | Google.GenAI |
+| PDF Generation | QuestPDF |
+| API Documentation | Swagger / OpenAPI |
+| Frontend Hosting | Vercel |
+| Backend Hosting | Render |
+
+---
+
+## Architecture
+
+```text
+User
+ |
+ v
+React + Vite Frontend
+(Hosted on Vercel)
+ |
+ | HTTP requests using Axios
+ v
+ASP.NET Core 8 Web API
+(Hosted on Render)
+ |
+ +----> Chronotype Classification Service
+ |
+ +----> Gemini AI Personalization
+ |         |
+ |         +----> Rule-Based Fallback
+ |
+ +----> QuestPDF Report Generator
+ |
+ v
+Analysis Response / Downloadable PDF
 ```
+
+---
+
+## Project Structure
+
+```text
 SleepSyncAI/
-├── SleepSyncAI.Api/                       # ASP.NET Core 8 Web API
+|
+├── SleepSyncAI.Api/
 │   ├── Controllers/
-│   │   └── SleepController.cs             # POST /api/sleep/analyze & /api/sleep/report
+│   │   └── SleepController.cs
+│   │
 │   ├── Models/
-│   │   ├── SleepAnalysisRequest.cs        # Comprehensive request DTO with validation
-│   │   └── SleepAnalysisResponse.cs       # Rich response DTO (Chronotype, Profile, Curve, Schedule, Citations)
+│   │   ├── SleepAnalysisRequest.cs
+│   │   └── SleepAnalysisResponse.cs
+│   │
 │   ├── Services/
-│   │   ├── ISleepAnalyzerService.cs       # Analyzer interface
-│   │   ├── ChronotypeClassificationService.cs # Core scientific scoring & schedule engine
-│   │   ├── RuleBasedAnalyzerService.cs    # Deterministic fallback service
-│   │   ├── GeminiAnalyzerService.cs       # AI personalizer with schema enforcement
-│   │   └── PdfReportService.cs            # Multi-page executive QuestPDF report builder
+│   │   ├── ISleepAnalyzerService.cs
+│   │   ├── ChronotypeClassificationService.cs
+│   │   ├── RuleBasedAnalyzerService.cs
+│   │   ├── GeminiAnalyzerService.cs
+│   │   └── PdfReportService.cs
+│   │
 │   ├── Properties/
-│   │   └── launchSettings.json            # HTTP port 5062 launch profile
-│   ├── Program.cs                         # Dependency injection, CORS, self-test suite
-│   ├── Dockerfile                         # Production Docker deployment (Render)
-│   └── SleepSyncAI.Api.csproj             # .NET 8 project dependencies
+│   │   └── launchSettings.json
+│   │
+│   ├── Program.cs
+│   ├── Dockerfile
+│   └── SleepSyncAI.Api.csproj
 │
-└── sleepsyncai.client/                    # React 19 + Vite frontend
-    ├── src/
-    │   ├── components/
-    │   │   ├── Header.jsx                 # App bar with navigation pills & view switcher
-    │   │   ├── Footer.jsx                 # Educational wellness disclaimer & copyright
-    │   │   ├── AssessmentWizard.jsx       # 5-step Chronotype questionnaire wizard
-    │   │   ├── EnergyCurveChart.jsx       # Interactive 24-hour SVG energy curve visualization
-    │   │   ├── ChronotypeReportView.jsx   # Complete 10-section interactive report
-    │   │   ├── SleepForm.jsx              # Classic 6-field questionnaire (backward compatibility)
-    │   │   ├── AnalysisResults.jsx         # Legacy results renderer
-    │   │   └── SuggestionCard.jsx         # Reusable suggestion card
-    │   ├── pages/
-    │   │   └── HomePage.jsx               # Redesigned 9-section landing page
-    │   ├── services/
-    │   │   └── sleepApi.js                # Axios client with dynamic URL & localStorage helpers
-    │   ├── theme/
-    │   │   └── theme.js                   # Custom MUI dark wellness theme (#0B1220 palette)
-    │   ├── App.jsx                        # Root orchestrator with view state routing
-    │   └── main.jsx                       # React 19 entry point
-    ├── index.html                         # Document template with Inter typography
-    ├── vite.config.js                     # Vite dev server configuration (port 5173)
-    └── package.json                       # Dependencies & build scripts
+├── sleepsyncai.client/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── Header.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   ├── AssessmentWizard.jsx
+│   │   │   ├── EnergyCurveChart.jsx
+│   │   │   ├── ChronotypeReportView.jsx
+│   │   │   ├── SleepForm.jsx
+│   │   │   ├── AnalysisResults.jsx
+│   │   │   └── SuggestionCard.jsx
+│   │   │
+│   │   ├── pages/
+│   │   │   └── HomePage.jsx
+│   │   │
+│   │   ├── services/
+│   │   │   └── sleepApi.js
+│   │   │
+│   │   ├── theme/
+│   │   │   └── theme.js
+│   │   │
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   │
+│   ├── index.html
+│   ├── vite.config.js
+│   └── package.json
+│
+└── README.md
 ```
 
 ---
 
-## 🚀 Setup & Execution Guide
+## Live API Endpoints
 
-### Backend (.NET 8 Web API)
+Base URL:
 
-```powershell
-# Navigate to API project
-cd SleepSyncAI\SleepSyncAI.Api
+`https://sleepsyncai.onrender.com`
 
-# Restore dependencies
+| Method | Endpoint | Description |
+|---|---|---|
+| POST | `/api/sleep/analyze` | Analyze submitted sleep and chronotype information |
+| POST | `/api/sleep/report` | Generate and download a PDF report |
+
+Interactive documentation:
+
+https://sleepsyncai.onrender.com/swagger
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- .NET 8 SDK
+- Node.js and npm
+- Visual Studio 2022 or Visual Studio Code
+- Google Gemini API key (optional)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/SintaSobu45/SleepSyncAI.git
+cd SleepSyncAI
+```
+
+### 2. Run the Backend
+
+```bash
+cd SleepSyncAI.Api
 dotnet restore
-
-# Build project (0 errors, 0 warnings)
 dotnet build
-
-# Run automated verification tests
-dotnet bin\Debug\net8.0\SleepSyncAI.Api.dll --test-run
-
-# Run API server (listens on http://localhost:5062)
-dotnet run --launch-profile http
+dotnet run
 ```
 
-- **Interactive Swagger Documentation:** `http://localhost:5062/swagger`
+The backend runs using the configured launch profile.
 
-### Frontend (React 19 + Vite)
+For local HTTP development, the configured URL may be:
+
+`http://localhost:5062`
+
+Swagger:
+
+`http://localhost:5062/swagger`
+
+### 3. Configure Gemini API Key (Optional)
+
+The application supports rule-based analysis without a Gemini API key.
+
+For AI-powered personalization, configure the key on the backend.
+
+**Option A: .NET User Secrets**
+
+```bash
+dotnet user-secrets init
+dotnet user-secrets set "Gemini:ApiKey" "YOUR_GEMINI_API_KEY"
+```
+
+**Option B: Environment Variable**
+
+PowerShell:
 
 ```powershell
-# Navigate to client project
-cd SleepSyncAI\sleepsyncai.client
-
-# Run production build check
-cmd.exe /c "npm run build"
-
-# Launch development server
-cmd.exe /c "npm run dev"
+$env:GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
 ```
 
-- **Application URL:** `http://localhost:5173` (or `http://localhost:5174`)
+Never expose the Gemini API key in frontend code or commit real credentials to GitHub.
+
+### 4. Run the Frontend
+
+Open a separate terminal from the repository root:
+
+```bash
+cd sleepsyncai.client
+npm install
+npm run dev
+```
+
+Vite displays the local application URL, typically:
+
+`http://localhost:5173`
+
+The frontend API configuration is maintained in:
+
+`src/services/sleepApi.js`
+
+Ensure the local API URL points to the running backend during development.
 
 ---
 
-## 🔒 Security & Privacy Architecture
+## Security and Privacy
 
-1. **Zero Data Persistence:** No database or Entity Framework Core. Data is processed in-memory and immediately discarded.
-2. **Server-Side API Key Security:** Google Gemini API keys are held strictly in backend User Secrets or environment variables (`GEMINI_API_KEY`). No secrets are ever exposed to client bundles.
-3. **Untrusted Client Protection:** The PDF generation endpoint (`POST /api/sleep/report`) re-runs classification on the server to prevent fabricated client injections.
-4. **HTML Sanitization & Validation:** Regex and range validations enforce data format integrity; text inputs are sanitized against HTML injections.
-5. **CORS Governance:** Restricted to approved frontend development origins (`http://localhost:5173`, `http://localhost:5174`, `http://localhost:3000`) and production deployment (`https://sleepsyncaiclient.vercel.app`).
+- No database or Entity Framework Core is used.
+- Assessment data is processed by the backend without persistent database storage.
+- Gemini API credentials remain server-side.
+- Backend request validation protects API endpoints.
+- CORS is configured for approved frontend development and production origins.
+- The PDF endpoint generates its report on the backend.
+- The application does not require user authentication.
+
+---
+
+## AI and Rule-Based Fallback
+
+The application separates chronotype classification from AI-generated explanations.
+
+1. The C# classification engine calculates estimated chronotype information.
+2. Gemini can generate personalized natural-language explanations.
+3. If Gemini is unavailable or not configured, the rule-based analyzer provides the fallback analysis.
+4. The backend generates the structured response and PDF report.
+
+AI-generated text does not determine the underlying classification.
+
+---
+
+## Known Limitations
+
+- The application does not store assessment history in a database.
+- There is no user authentication or personal dashboard.
+- AI personalization depends on Gemini availability and valid server-side configuration.
+- Rule-based analysis is used when Gemini is unavailable.
+- Chronotype results are educational estimates based on self-reported information.
+- The application is not intended for medical diagnosis or treatment.
+
+---
+
+## Future Improvements
+
+- Automated frontend and backend test coverage.
+- More detailed sleep history and trend visualizations.
+- Optional saved reports.
+- Additional accessibility improvements.
+- Expanded educational content about sleep and circadian rhythms.
+
+---
+
+## Wellness Disclaimer
+
+SleepSync AI provides educational wellness information based on self-reported data. It does not diagnose sleep disorders, establish biological chronotypes with clinical certainty, or provide medical advice. Consult a qualified healthcare professional for sleep-related health concerns.
+
+---
+
+**Built with React, ASP.NET Core 8, Google Gemini, and QuestPDF.**
