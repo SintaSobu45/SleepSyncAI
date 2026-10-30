@@ -5,29 +5,43 @@ using SleepSyncAI.Api.Models;
 namespace SleepSyncAI.Api.Services;
 
 /// <summary>
-/// AI-powered sleep analyzer using Google Gemini.
-/// Falls back to RuleBasedAnalyzerService if the AI response is unusable.
+/// AI-powered personalization engine using Google Gemini.
+/// Takes pre-calculated scientific chronotype results and enhances them with personalized,
+/// conversational explanations, actionable afternoon dip strategies, and schedule commentary.
+/// Always falls back safely to RuleBasedAnalyzerService if Gemini is unavailable or returns invalid data.
 /// </summary>
 public class GeminiAnalyzerService : ISleepAnalyzerService
 {
     private readonly Client _client;
     private readonly string _model;
+    private readonly ChronotypeClassificationService _classifier;
     private readonly RuleBasedAnalyzerService _fallback;
     private readonly ILogger<GeminiAnalyzerService> _logger;
 
-    public GeminiAnalyzerService(Client client, IConfiguration config, ILogger<GeminiAnalyzerService> logger)
+    public GeminiAnalyzerService(
+        Client client,
+        IConfiguration config,
+        ChronotypeClassificationService classifier,
+        ILogger<GeminiAnalyzerService> logger)
     {
         _client = client;
         _model = config["Gemini:Model"] ?? "gemini-2.0-flash";
-        _fallback = new RuleBasedAnalyzerService();
+        _classifier = classifier;
+        _fallback = new RuleBasedAnalyzerService(_classifier);
         _logger = logger;
     }
 
     public async Task<SleepAnalysisResponse> AnalyzeAsync(SleepAnalysisRequest request)
     {
+        // 1. Calculate baseline deterministic chronotype and schedule
+        var baseline = _classifier.ClassifyAndBuildReport(request);
+
         try
         {
-            var prompt = BuildPrompt(request);
+            var prompt = BuildPrompt(request, baseline);
+
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(12));
+
             var response = await _client.Models.GenerateContentAsync(
                 model: _model,
                 contents: prompt
@@ -36,76 +50,82 @@ public class GeminiAnalyzerService : ISleepAnalyzerService
             var text = response.Text;
             if (string.IsNullOrWhiteSpace(text))
             {
-                _logger.LogWarning("Gemini returned empty response, falling back to rule-based analysis.");
-                return await _fallback.AnalyzeAsync(request);
+                _logger.LogWarning("Gemini returned empty text response; using rule-based analysis.");
+                return baseline;
             }
 
-            var parsed = ParseAiResponse(text, request);
-            if (parsed != null)
+            var enhanced = MergeAiEnhancement(baseline, text);
+            if (enhanced != null)
             {
-                return parsed;
+                enhanced.AiGenerated = true;
+                return enhanced;
             }
 
-            _logger.LogWarning("Could not parse Gemini response, falling back to rule-based analysis.");
-            return await _fallback.AnalyzeAsync(request);
+            _logger.LogWarning("Could not parse or validate Gemini response; using rule-based analysis.");
+            return baseline;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Gemini API call failed, falling back to rule-based analysis.");
-            return await _fallback.AnalyzeAsync(request);
+            _logger.LogWarning(ex, "Gemini API call failed or timed out. Falling back to rule-based analysis.");
+            return baseline;
         }
     }
 
-    private static string BuildPrompt(SleepAnalysisRequest request)
+    private static string BuildPrompt(SleepAnalysisRequest request, SleepAnalysisResponse baseline)
     {
-        var bedtime = TimeSpan.Parse(request.Bedtime);
-        var wakeUp = TimeSpan.Parse(request.WakeUpTime);
-        double calculatedHours = RuleBasedAnalyzerService.CalculateSleepDuration(bedtime, wakeUp);
+        return $@"You are a circadian biology and sleep wellness consultant for SleepSync AI.
+Analyze the user's self-reported sleep data and enrich their Chronotype Report with warm, evidence-based, actionable guidance.
 
-        return $@"You are a friendly wellness assistant. Analyze the following self-reported sleep data and provide helpful, non-medical insights.
+STRICT MEDICAL & SAFETY RULES:
+1. This is an EDUCATIONAL WELLNESS report, NOT a medical assessment.
+2. Do NOT diagnose any medical or sleep disorder (e.g. insomnia, sleep apnea, delayed sleep phase syndrome).
+3. Do NOT prescribe medications, supplements, melatonin dosages, or medical treatments.
+4. Do NOT alter the pre-calculated chronotype classification: '{baseline.Chronotype.DisplayName}'.
+5. Do NOT invent fake research citations or journal DOIs.
 
-IMPORTANT RULES:
-- Do NOT diagnose any sleep disorder or medical condition.
-- Do NOT claim to determine a biological chronotype from this limited data.
-- Use cautious, encouraging language.
-- Be practical and specific to the user's data.
+PRE-CALCULATED RESULTS:
+- Chronotype Category: {baseline.Chronotype.DisplayName}
+- Confidence: {baseline.Chronotype.Confidence}
+- Preferred Bedtime: {baseline.SleepProfile.PreferredBedtime}
+- Preferred Wake Time: {baseline.SleepProfile.PreferredWakeTime}
+- Sleep Window: ~{baseline.SleepProfile.CalculatedSleepWindowHours} hours (Self-reported: {baseline.SleepProfile.AverageSleepDuration}h)
+- Midpoint of Sleep: {baseline.SleepProfile.MidpointOfSleep}
+- Peak Energy Window: {baseline.EnergyCurve.Peak.TimeWindowFormatted}
+- Afternoon Dip Window: {baseline.EnergyCurve.Dip.TimeWindowFormatted}
+- Creative Recovery Window: {baseline.EnergyCurve.Recovery.TimeWindowFormatted}
 
-USER DATA:
-- Bedtime: {request.Bedtime}
-- Wake-up time: {request.WakeUpTime}
-- Calculated sleep window: approximately {calculatedHours:0.#} hours
-- Self-reported average sleep: {request.AverageSleepHours} hours
-- Time of peak energy: {request.EnergyPeak}
-- Preferred schedule type: {request.PreferredSchedule}
-- Additional notes: {(string.IsNullOrWhiteSpace(request.Notes) ? "None provided" : request.Notes)}
+USER'S REPORTED CONTEXT:
+- Work Schedule: {request.WorkSchedule}
+- Exercise Frequency & Timing: {request.ExerciseFrequency} ({request.ExerciseTiming})
+- Caffeine Habit: {request.CaffeineConsumption} (Cutoff: {request.CaffeineCutoffTime})
+- Pre-bed Screen Use: {request.ScreenBeforeBed}
+- Weekend Schedule Shift: {request.WeekendSleepShift}
+- Sleep Onset Difficulty: {request.SleepOnsetDifficulty}
+- Morning Refreshed Level: {request.MorningRefreshedLevel}
+- Daytime Fatigue: {request.DaytimeFatigue}
+- Afternoon Dip Experience: {request.HasAfternoonDip}
+- User Notes: {(string.IsNullOrWhiteSpace(request.Notes) ? "None provided" : request.Notes)}
 
-Respond ONLY with valid JSON in this exact format (no markdown, no code fences, no extra text):
+Respond ONLY with a valid JSON object matching this exact schema (no markdown, no backticks, no code fences):
 {{
-  ""summary"": ""A 2-3 sentence summary of their reported sleep pattern."",
-  ""estimatedPreference"": ""One of: Early-oriented, Intermediate, or Late-oriented"",
-  ""reportedSleepDuration"": ""{request.AverageSleepHours} hours (calculated interval: ~{calculatedHours:0.#} hours)"",
-  ""suggestions"": [
-    ""First specific personalized suggestion"",
-    ""Second specific personalized suggestion"",
-    ""Third specific personalized suggestion""
-  ],
-  ""generalRecommendations"": [
-    ""First general sleep recommendation"",
-    ""Second general sleep recommendation"",
-    ""Third general sleep recommendation"",
-    ""Fourth general sleep recommendation"",
-    ""Fifth general sleep recommendation""
-  ],
-  ""disclaimer"": ""This is an informal wellness estimate based on your self-reported data. It is not a clinical chronotype assessment or medical diagnosis. For sleep concerns, please consult a qualified healthcare professional.""
+  ""personalizedSummary"": ""3-4 engaging sentences summarizing how their sleep habits shape their daily circadian rhythm."",
+  ""chronotypeExplanation"": ""A detailed, personalized 2-paragraph explanation of their {baseline.Chronotype.DisplayName} rhythm, explaining why they feel energetic at certain times and how their biology operates."",
+  ""peakPeriodInsight"": ""Personalized guidance on maximizing their {baseline.EnergyCurve.Peak.TimeWindowFormatted} peak focus window, tailored to their work/study style."",
+  ""afternoonDipStrategy"": ""Practical, specific suggestions to manage their {baseline.EnergyCurve.Dip.TimeWindowFormatted} afternoon dip without relying on late caffeine."",
+  ""recoveryPeriodInsight"": ""Suggestions for their {baseline.EnergyCurve.Recovery.TimeWindowFormatted} recovery and creative window."",
+  ""personalizedSuggestions"": [
+    ""First specific actionable suggestion tailored to their inputs"",
+    ""Second specific actionable suggestion tailored to their inputs"",
+    ""Third specific actionable suggestion tailored to their inputs""
+  ]
 }}";
     }
 
-    private SleepAnalysisResponse? ParseAiResponse(string text, SleepAnalysisRequest request)
+    private SleepAnalysisResponse? MergeAiEnhancement(SleepAnalysisResponse baseline, string aiText)
     {
         try
         {
-            // Clean up the response - remove any markdown code fences if present
-            var cleaned = text.Trim();
+            var cleaned = aiText.Trim();
             if (cleaned.StartsWith("```"))
             {
                 var firstNewline = cleaned.IndexOf('\n');
@@ -116,45 +136,63 @@ Respond ONLY with valid JSON in this exact format (no markdown, no code fences, 
                 cleaned = cleaned.Trim();
             }
 
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
+            using var doc = JsonDocument.Parse(cleaned);
+            var root = doc.RootElement;
 
-            var parsed = JsonSerializer.Deserialize<SleepAnalysisResponse>(cleaned, options);
-            if (parsed == null) return null;
-
-            // Validate the parsed response has essential fields
-            if (string.IsNullOrWhiteSpace(parsed.Summary) ||
-                string.IsNullOrWhiteSpace(parsed.EstimatedPreference) ||
-                parsed.Suggestions == null || parsed.Suggestions.Count < 3)
+            if (root.TryGetProperty("personalizedSummary", out var summaryProp) &&
+                !string.IsNullOrWhiteSpace(summaryProp.GetString()))
             {
-                return null;
+                baseline.Summary = summaryProp.GetString()!;
             }
 
-            // Ensure disclaimer is always present (don't trust AI to include it)
-            parsed.Disclaimer = "This is an informal wellness estimate based on your self-reported data. " +
-                                "It is not a clinical chronotype assessment or medical diagnosis. " +
-                                "For sleep concerns, please consult a qualified healthcare professional.";
-
-            // Ensure general recommendations exist
-            if (parsed.GeneralRecommendations == null || parsed.GeneralRecommendations.Count == 0)
+            if (root.TryGetProperty("chronotypeExplanation", out var explProp) &&
+                !string.IsNullOrWhiteSpace(explProp.GetString()))
             {
-                parsed.GeneralRecommendations = new List<string>
+                baseline.Chronotype.Explanation = explProp.GetString()!;
+            }
+
+            if (root.TryGetProperty("peakPeriodInsight", out var peakProp) &&
+                !string.IsNullOrWhiteSpace(peakProp.GetString()))
+            {
+                baseline.EnergyCurve.Peak.Description = peakProp.GetString()!;
+            }
+
+            if (root.TryGetProperty("afternoonDipStrategy", out var dipProp) &&
+                !string.IsNullOrWhiteSpace(dipProp.GetString()))
+            {
+                baseline.EnergyCurve.Dip.Description = dipProp.GetString()!;
+            }
+
+            if (root.TryGetProperty("recoveryPeriodInsight", out var recProp) &&
+                !string.IsNullOrWhiteSpace(recProp.GetString()))
+            {
+                baseline.EnergyCurve.Recovery.Description = recProp.GetString()!;
+            }
+
+            if (root.TryGetProperty("personalizedSuggestions", out var suggProp) &&
+                suggProp.ValueKind == JsonValueKind.Array)
+            {
+                var newSuggestions = new List<string>();
+                foreach (var item in suggProp.EnumerateArray())
                 {
-                    "Keep your wake-up time reasonably consistent, even on days off.",
-                    "Create a relaxing pre-sleep routine.",
-                    "Keep your bedroom cool, dark, and quiet.",
-                    "Avoid caffeine at least 6 hours before bedtime.",
-                    "Track your energy levels to learn more about your patterns."
-                };
+                    var s = item.GetString();
+                    if (!string.IsNullOrWhiteSpace(s))
+                    {
+                        newSuggestions.Add(s);
+                    }
+                }
+
+                if (newSuggestions.Count >= 3)
+                {
+                    baseline.Suggestions = newSuggestions;
+                }
             }
 
-            return parsed;
+            return baseline;
         }
-        catch (JsonException ex)
+        catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to parse Gemini JSON response.");
+            _logger.LogWarning(ex, "Failed to parse and merge Gemini response JSON.");
             return null;
         }
     }

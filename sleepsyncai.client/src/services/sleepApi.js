@@ -1,32 +1,44 @@
 import axios from 'axios';
 
-// const API_BASE_URL = 'http://localhost:5062/api/sleep';
-
-// const apiClient = axios.create({
-//   baseURL: API_BASE_URL,
-//   headers: {
-//     'Content-Type': 'application/json',
-//   },
-// });
-
-
-const API_BASE_URL = 'https://sleepsyncai.onrender.com/api/sleep';
+// Dynamically select API URL:
+// 1. Vite environment variable if configured (VITE_API_BASE_URL)
+// 2. Localhost if accessing from localhost/127.0.0.1
+// 3. Render production backend fallback
+const getBaseUrl = () => {
+  if (import.meta.env?.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return 'http://localhost:5062/api/sleep';
+    }
+  }
+  return 'https://sleepsyncai.onrender.com/api/sleep';
+};
 
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000, // 30s timeout for cold starts or AI processing
 });
 
-
 /**
- * Sends sleep questionnaire data to the backend for analysis.
- * Returns the structured analysis response.
+ * Sends questionnaire data to backend for chronotype classification and circadian analysis.
+ * Returns the comprehensive SleepAnalysisResponse object.
  */
 export async function analyzeSleep(data) {
   try {
     const response = await apiClient.post('/analyze', data);
+    // Optionally cache the latest report in localStorage for user convenience
+    try {
+      localStorage.setItem('sleepsync_last_report', JSON.stringify(response.data));
+      localStorage.setItem('sleepsync_last_submission', JSON.stringify(data));
+    } catch {
+      // Ignore localStorage errors (e.g. private browsing storage quota)
+    }
     return response.data;
   } catch (error) {
     throw extractError(error);
@@ -34,8 +46,8 @@ export async function analyzeSleep(data) {
 }
 
 /**
- * Requests a PDF report from the backend and triggers a browser download.
- * The PDF is generated server-side and returned as a blob.
+ * Requests an executive multi-page PDF Chronotype Report from the backend
+ * and triggers a browser file download.
  */
 export async function downloadReport(data) {
   try {
@@ -43,61 +55,91 @@ export async function downloadReport(data) {
       responseType: 'blob',
     });
 
-    // Create a temporary object URL for the blob
     const blob = new Blob([response.data], { type: 'application/pdf' });
     const url = window.URL.createObjectURL(blob);
 
-    // Create a hidden link and trigger the download
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'SleepSync-Report.pdf';
+    link.download = 'SleepSync-Chronotype-Report.pdf';
     document.body.appendChild(link);
     link.click();
 
-    // Clean up
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    }, 200);
   } catch (error) {
     throw extractError(error);
   }
 }
 
 /**
- * Extracts a user-friendly error message from an Axios error.
+ * Retrieves cached report from localStorage if available.
+ */
+export function getSavedReport() {
+  try {
+    const saved = localStorage.getItem('sleepsync_last_report');
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Retrieves cached submission form data from localStorage if available.
+ */
+export function getSavedFormData() {
+  try {
+    const saved = localStorage.getItem('sleepsync_last_submission');
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Clears saved report and data from browser storage.
+ */
+export function clearSavedReport() {
+  try {
+    localStorage.removeItem('sleepsync_last_report');
+    localStorage.removeItem('sleepsync_last_submission');
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Extracts a friendly error message from Axios errors.
  */
 function extractError(error) {
   if (error.response) {
     const data = error.response.data;
 
-    // Handle validation errors (400)
+    // Handle ASP.NET Core ValidationProblem (400)
     if (data?.errors) {
       const messages = Object.values(data.errors).flat();
       return new Error(messages.join(' '));
     }
 
-    // Handle generic error messages
     if (data?.error) {
       return new Error(data.error);
     }
 
-    // Handle blob error responses (from PDF endpoint)
     if (data instanceof Blob) {
-      return new Error('Failed to generate the PDF report. Please try again.');
+      return new Error('Failed to generate the PDF report. Please verify backend service availability.');
     }
 
-    return new Error(`Server error (${error.response.status}). Please try again.`);
+    return new Error(`Server returned an error (${error.response.status}). Please try again.`);
   }
 
-  // if (error.request) {
-  //   return new Error(
-  //     'Cannot reach the server. Please ensure the backend is running on http://localhost:5062.'
-  //   );
-  // }
+  if (error.code === 'ECONNABORTED') {
+    return new Error('The request timed out. If the server is waking up from idle on Render, please allow a few seconds and try again.');
+  }
 
   if (error.request) {
-  return new Error(
-    'Cannot reach the server. Please try again later.'
-  );
-}
+    return new Error('Unable to connect to the SleepSync AI server. Please check your internet connection or verify the backend service is active.');
+  }
+
   return new Error(error.message || 'An unexpected error occurred.');
 }

@@ -11,32 +11,29 @@ export default function Footer() {
         pb: 3,
         px: 3,
         textAlign: 'center',
-        borderTop: '1px solid rgba(148, 163, 184, 0.08)',
-        background: 'linear-gradient(180deg, transparent 0%, rgba(15, 23, 42, 0.5) 100%)',
+        borderTop: '1px solid #E2E8E3',
+        backgroundColor: '#FFFFFF',
       }}
     >
       <Typography
         variant="body2"
         sx={{
-          color: 'text.secondary',
-          fontSize: '0.78rem',
-          maxWidth: 600,
+          color: '#64748B',
+          fontSize: '0.82rem',
+          maxWidth: 680,
           mx: 'auto',
           lineHeight: 1.7,
           mb: 1.5,
         }}
       >
-        <strong>Wellness Disclaimer:</strong> SleepSync AI provides informal wellness
-        estimates based on self-reported data. It does not diagnose sleep disorders,
-        determine biological chronotypes, or provide medical advice. For sleep-related
-        health concerns, please consult a qualified healthcare professional.
+        <strong style={{ color: '#334155' }}>Educational Wellness Note:</strong> SleepSync AI provides helpful, everyday wellness insights based on your self-reported habits. It is not a medical diagnostic tool and does not treat sleep conditions. If you have ongoing sleep concerns, please speak with a qualified doctor or healthcare professional.
       </Typography>
-      <Divider sx={{ maxWidth: 120, mx: 'auto', mb: 1.5, borderColor: 'rgba(148,163,184,0.12)' }} />
+      <Divider sx={{ maxWidth: 140, mx: 'auto', mb: 1.5, borderColor: '#E2E8E3' }} />
       <Typography
         variant="caption"
-        sx={{ color: 'rgba(148, 163, 184, 0.5)', fontSize: '0.72rem' }}
+        sx={{ color: '#94A3B8', fontSize: '0.75rem' }}
       >
-        © {new Date().getFullYear()} SleepSync AI — Educational Wellness Tool
+        © {new Date().getFullYear()} SleepSync AI • A Calm Guide to Your Daily Sleep & Energy Rhythm
       </Typography>
     </Box>
   );

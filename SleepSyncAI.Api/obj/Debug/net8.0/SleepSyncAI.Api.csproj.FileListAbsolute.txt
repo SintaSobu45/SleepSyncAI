@@ -63,3 +63,4 @@ F:\MyProjects\SleepDectector\SleepSyncAI\SleepSyncAI.Api\obj\Debug\net8.0\refint
 F:\MyProjects\SleepDectector\SleepSyncAI\SleepSyncAI.Api\obj\Debug\net8.0\SleepSyncAI.Api.pdb
 F:\MyProjects\SleepDectector\SleepSyncAI\SleepSyncAI.Api\obj\Debug\net8.0\SleepSyncAI.Api.genruntimeconfig.cache
 F:\MyProjects\SleepDectector\SleepSyncAI\SleepSyncAI.Api\obj\Debug\net8.0\ref\SleepSyncAI.Api.dll
+F:\MyProjects\SleepDectector\SleepSyncAI\SleepSyncAI.Api\obj\Debug\net8.0\SleepSyncAI.Api.sourcelink.json
